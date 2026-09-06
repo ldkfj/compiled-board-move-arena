@@ -1,0 +1,13 @@
+AGENTS.md
+CLAUDE.md
+docs/preflight/
+.pytest_cache/
+__pycache__/
+*.pyc
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+.env
+.env.*
+!.env.example
