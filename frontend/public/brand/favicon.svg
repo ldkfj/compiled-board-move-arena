@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <rect width="32" height="32" rx="6" fill="#0c121b" />
+  <!-- 3x3 Grid Outline -->
+  <rect x="5" y="5" width="22" height="22" rx="3" stroke="#253549" stroke-width="1.2" />
+  <line x1="12.33" y1="5" x2="12.33" y2="27" stroke="#1f2d3d" stroke-width="1" />
+  <line x1="19.67" y1="5" x2="19.67" y2="27" stroke="#1f2d3d" stroke-width="1" />
+  <line x1="5" y1="12.33" x2="27" y2="12.33" stroke="#1f2d3d" stroke-width="1" />
+  <line x1="5" y1="19.67" x2="27" y2="19.67" stroke="#1f2d3d" stroke-width="1" />
+  <!-- Transition arrow -->
+  <path d="M8.6 8.6H16V16" stroke="#2dd4bf" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Player A (Triangle) -->
+  <polygon points="8.6,6.5 11.2,10.7 6,10.7" fill="#f59e0b" />
+  <!-- Player B (Circle) -->
+  <circle cx="23.3" cy="23.3" r="2.5" fill="#0ea5e9" />
+</svg>
