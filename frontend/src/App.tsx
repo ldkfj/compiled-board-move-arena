@@ -54,12 +54,18 @@ export default function App() {
     try {
       const argsJson = canonicalJson(args);
       const argsHash = await sha256Hex(argsJson);
+      const preHash = arena ? await sha256Hex(arena.raw) : ZERO_HASH;
       let resolvedId = arena?.record.id ?? "0";
       const outcome = await executeWrite({
-        journal:{ chain:chainIdDecimal(),contract,account:wallet.account,method,intent,argsJson,preRevision,preHash:arena ? await sha256Hex(arena.raw) : ZERO_HASH,preStateJson:arena?.raw ?? "" },
+        journal:{ chain:chainIdDecimal(),contract,account:wallet.account,method,intent,argsJson,preRevision,preHash,preStateJson:arena?.raw ?? "" },
         submit:() => wallet.writeClient!.submit(method, args as never[]),
         pollFinalized:wallet.writeClient.pollFinalized,
-        verifyPre:async () => true,
+        verifyPre:async (signal) => {
+          if (nonce) return await readIdByNonce(wallet.account!, nonce, contract, signal) === "0";
+          if (resolvedId === "0") return false;
+          const raw = await readVersion(resolvedId, preRevision, contract, signal);
+          return raw ? await sha256Hex(raw) === preHash : false;
+        },
         verifyPost:async (signal) => {
           invalidateReadRequests();
           if (nonce) resolvedId = await readIdByNonce(wallet.account!, nonce, contract, signal);
@@ -100,7 +106,11 @@ export default function App() {
       let id = item.pre_revision === "0" ? await readIdByNonce(item.account, String(args[0]), contract) : String(args[0]);
       const revision = item.pre_revision === "0" ? "1" : nextRevision(item.pre_revision);
       const outcome = await reconcileWrite({
-        journal:item, pollFinalized, verifyPre:async()=>true,
+        journal:item, pollFinalized, verifyPre:async(signal)=>{
+          if (item.pre_revision === "0") return await readIdByNonce(item.account,String(args[0]),contract,signal) === "0";
+          const raw = await readVersion(id,item.pre_revision,contract,signal);
+          return raw ? await sha256Hex(raw) === item.pre_hash : false;
+        },
         verifyPost:async(signal)=>{
           if (id === "0" && item.method === "create_arena") id = await readIdByNonce(item.account,String(args[0]),contract,signal);
           const raw = await readVersion(id,revision,contract,signal); const next = raw ? parseRecord(raw) : null;
