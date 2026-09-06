@@ -26,8 +26,8 @@ const journalInput = {
   chain: "61999",
   contract: "0x" + "1".repeat(40),
   account: "0x" + "2".repeat(40),
-  method: "evaluate_match",
-  intent: "evaluate_match:1:3",
+  method: "compile_moves",
+  intent: "compile_moves:1:3",
   argsJson: canonicalJson(["1", "3"]),
   preRevision: "3",
   preHash: "a".repeat(64),
@@ -388,4 +388,3 @@ describe("executeWrite", () => {
     expect(phases).toEqual([]);
   });
 });
-

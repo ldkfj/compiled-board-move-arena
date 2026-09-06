@@ -8,8 +8,8 @@ const baseRecord: JournalRecord = {
   chain: "61999",
   contract: "0x" + "1".repeat(40),
   account: "0x" + "2".repeat(40),
-  method: "evaluate_match",
-  intent: "evaluate_match:1:3",
+  method: "compile_moves",
+  intent: "compile_moves:1:3",
   args_json: "[\"1\",\"3\"]",
   pre_revision: "3",
   pre_hash: "a".repeat(64),
@@ -35,4 +35,3 @@ describe("JournalPanel status labels", () => {
     expect(new Set(labels).size).toBe(3);
   });
 });
-

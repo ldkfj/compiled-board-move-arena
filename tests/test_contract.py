@@ -111,3 +111,48 @@ def test_illegal_move_and_stale_guards_do_not_write(direct_vm, direct_deploy, di
         with direct_vm.expect_revert("STALE_PLY"): contract.move_piece(1, 0, 1, 1, 4)
         with direct_vm.expect_revert("ILLEGAL_MOVE"): contract.move_piece(1, 0, 2, 0, 4)
     assert contract.get_case(1) == before
+
+
+def test_unsupported_never_opens_play(direct_vm, direct_deploy, direct_alice, direct_bob):
+    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": False, "cells": "U" * 81})
+    contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
+    contract.compile_moves(1, 2)
+    assert (record(contract)["phase"], record(contract)["outcome"]) == ("DONE", "UNSUPPORTED_RULE")
+
+
+def test_unplayable_persists_matrix_for_inspection(direct_vm, direct_deploy, direct_alice, direct_bob):
+    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": "D" * 81})
+    contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
+    contract.compile_moves(1, 2)
+    unplayable = record(contract)
+    assert (unplayable["phase"], unplayable["outcome"], len(unplayable["domain"]["matrix"])) == ("DONE", "UNPLAYABLE_RULE", 81)
+
+
+def test_no_move_resign_lists_and_history(direct_vm, direct_deploy, direct_alice, direct_bob):
+    cells = matrix_cells([(0, 1), (1, 2), (8, 7)])
+    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": cells})
+    contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
+    contract.compile_moves(1, 2)
+    with direct_vm.prank(direct_bob): contract.join_arena(1, 3)
+    with direct_vm.prank(direct_alice): contract.move_piece(1, 0, 1, 0, 4)
+    with direct_vm.prank(direct_bob): contract.move_piece(1, 8, 7, 1, 5)
+    with direct_vm.prank(direct_alice): contract.move_piece(1, 1, 2, 2, 6)
+    final = record(contract)
+    assert (final["outcome"], final["domain"]["winner"]) == ("NO_MOVE", address_text(direct_alice))
+    assert json.loads(contract.list_cases(1, 4)) == {"ids": ["1"], "next": "0"}
+    assert json.loads(contract.list_actor(direct_bob, 0, 4))["ids"] == ["1"]
+    assert json.loads(contract.list_children(0, 0, 4)) == {"ids": [], "next": "0"}
+    assert json.loads(contract.get_version(1, 4))["phase"] == "PLAYING"
+
+
+def test_resign_assigns_other_player_and_blocks_cancel(direct_vm, direct_deploy, direct_alice, direct_bob):
+    cells = matrix_cells([(0, 1), (8, 7)])
+    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": cells})
+    contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
+    contract.compile_moves(1, 2)
+    with direct_vm.prank(direct_bob):
+        contract.join_arena(1, 3)
+        contract.resign_arena(1, 4)
+    assert record(contract)["domain"]["winner"] == address_text(direct_alice)
+    with direct_vm.expect_revert("BAD_PHASE"):
+        contract.cancel_arena(1, 5)

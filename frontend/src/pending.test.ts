@@ -50,7 +50,7 @@ function input(index: number) {
     chain: "61999",
     contract: CONTRACT,
     account: ACCOUNT,
-    method: "create_match",
+    method: "create_arena",
     intent: `create:${ACCOUNT}:nonce${index.toString().padStart(2, "0")}`,
     argsJson: canonicalJson([String(index)]),
     preRevision: "0",
@@ -145,8 +145,8 @@ describe("DurableJournal", () => {
     const journal = new DurableJournal(new MemoryStorage(), new ImmediateLocks());
     await journal.createSigning({
       ...input(1),
-      method: "evaluate_match",
-      intent: "evaluate_match:7:3",
+      method: "compile_moves",
+      intent: "compile_moves:7:3",
       argsJson: canonicalJson(["7", "3"]),
       preRevision: "3",
       preHash: "a".repeat(64),
@@ -156,8 +156,8 @@ describe("DurableJournal", () => {
       journal.createSigning({
         ...input(2),
         account: "0x" + "3".repeat(40),
-        method: "expire_match",
-        intent: "expire_match:7:3",
+        method: "cancel_arena",
+        intent: "cancel_arena:7:3",
         argsJson: canonicalJson(["7", "3"]),
         preRevision: "3",
         preHash: "a".repeat(64),
@@ -191,4 +191,3 @@ describe("DurableJournal", () => {
     await expect(journal.createSigning(input(33))).rejects.toMatchObject({ kind: "capacity" });
   });
 });
-

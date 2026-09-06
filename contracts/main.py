@@ -94,9 +94,9 @@ def _compile_result(raw):
     cells = value["cells"]
     if len(cells) != 81 or any(c not in "ADU" for c in cells):
         _fail("MALFORMED_RESULT")
-    if any(cells[9 * i + i] != "D" for i in range(9)):
-        _fail("MALFORMED_RESULT")
     if not value["supported"] and cells != "U" * 81:
+        _fail("MALFORMED_RESULT")
+    if value["supported"] and any(cells[9 * i + i] != "D" for i in range(9)):
         _fail("MALFORMED_RESULT")
     return {"v": 1, "supported": value["supported"], "cells": cells}
 

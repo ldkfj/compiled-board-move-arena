@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState, useSyncExternalStore } from "r
 import { browserDiscoveryHost } from "./wallet/providers";
 import { createWalletStore, emptyWalletSessionState } from "./wallet/store";
 import { createBrowserJournal, type JournalRecord } from "./pending";
-import { executeWrite, INITIAL_WRITE_PROGRESS, type WriteProgress } from "./chain/writeCoordinator";
+import { executeWrite, reconcileWrite, INITIAL_WRITE_PROGRESS, type WriteProgress } from "./chain/writeCoordinator";
 import { canonicalJson, chainIdDecimal, invalidateReadRequests, makeWriteAdapter, normalizeAddress, parseRecord, pollFinalized, randomHex, readCase, readIdByNonce, readVersion, requireContractAddress, sha256Hex, validateContractText, ZERO_HASH, type CaseRead, type WriteMethod } from "./contract";
 
 const walletStore = typeof window === "undefined" ? null : createWalletStore(browserDiscoveryHost(), makeWriteAdapter);
@@ -35,6 +35,13 @@ export default function App() {
   const contract = useMemo(() => { try { return requireContractAddress(); } catch { return ""; } }, []);
 
   useEffect(() => { void journal?.list().then(setAttempts).catch(() => setAttempts([])); return () => walletStore?.destroy(); }, []);
+  useEffect(() => {
+    if (!view.chooserOpen) return;
+    document.querySelector<HTMLElement>(".wallet-dialog button")?.focus();
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") walletStore?.closeWalletPicker(); };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [view.chooserOpen]);
 
   async function load(id = caseId) {
     try { const value = await readCase(id); setArena(value); setCaseId(id); setNotice(""); }
@@ -84,6 +91,29 @@ export default function App() {
     void write(method,args,`${method}:${arena.record.id}:${arena.record.revision}${method === "move_piece" ? `:${arena.record.domain.ply}` : ""}`,arena.record.revision);
   }
 
+  async function reconcile(item: JournalRecord) {
+    if (!journal || busy || !contract) return;
+    setBusy(true); setProgress(INITIAL_WRITE_PROGRESS);
+    try {
+      const args = JSON.parse(item.args_json) as unknown[];
+      const argsHash = await sha256Hex(item.args_json);
+      let id = item.pre_revision === "0" ? await readIdByNonce(item.account, String(args[0]), contract) : String(args[0]);
+      const revision = item.pre_revision === "0" ? "1" : nextRevision(item.pre_revision);
+      const outcome = await reconcileWrite({
+        journal:item, pollFinalized, verifyPre:async()=>true,
+        verifyPost:async(signal)=>{
+          if (id === "0" && item.method === "create_arena") id = await readIdByNonce(item.account,String(args[0]),contract,signal);
+          const raw = await readVersion(id,revision,contract,signal); const next = raw ? parseRecord(raw) : null;
+          if (!next || next.last_operation.method !== item.method || next.last_operation.caller !== item.account || next.last_operation.args_hash !== argsHash) return false;
+          setArena({raw:raw!,record:next}); setCaseId(id); return true;
+        }, progress:setProgress,
+      },{journal});
+      setAttempts(await journal.list());
+      setNotice(outcome.status === "VERIFIED" ? "Existing transaction verified by exact readback." : "Existing transaction remains preserved for reconciliation.");
+    } catch(error) { setNotice(error instanceof Error ? error.message : String(error)); }
+    finally { setBusy(false); }
+  }
+
   const record = arena?.record;
   const mine = wallet.account?.toLowerCase();
   const myTurn = record?.phase === "PLAYING" && mine === (record.domain.turn === 0 ? record.primary : record.secondary);
@@ -98,7 +128,7 @@ export default function App() {
       <section className="panel"><h2>Inspect arena</h2><div className="inline"><input aria-label="Arena ID" value={caseId} onChange={e=>setCaseId(e.target.value)} /><button onClick={()=>void load()} disabled={busy}>Load</button></div>{record ? <><div className="status"><span>{phaseLabel(record.phase)}</span><small>Revision {record.revision} · ply {record.domain.ply}/12</small></div><p>{record.base.rule}</p><div className="board" aria-label="3 by 3 game board">{Array.from({length:9},(_,cell)=>{const player=record.domain.positions[0]===cell?"A":record.domain.positions[1]===cell?"B":"";const from=record.domain.positions[record.domain.turn];const enabled=Boolean(myTurn && legal[9*from+cell]==="1" && cell!==from);return <button key={cell} disabled={!enabled||busy} aria-label={`Cell ${cell}${player?`, player ${player}`:""}`} onClick={()=>action("move_piece",[from,cell,record.domain.ply])}>{player||cell}</button>})}</div><div className="actions">{record.phase==="RULE_DRAFT"&&mine===record.primary&&<button onClick={()=>action("freeze_rule")}>Freeze rule</button>}{record.phase==="FROZEN"&&<button onClick={()=>action("compile_moves")}>Compile 81 moves</button>}{record.phase==="UNRESOLVED"&&<button onClick={()=>action("retry_compile")}>Retry compile</button>}{record.phase==="COMPILED"&&mine===record.secondary&&<button onClick={()=>action("join_arena")}>Join after inspection</button>}{record.phase==="PLAYING"&&<button onClick={()=>action("resign_arena")}>Resign</button>}{["RULE_DRAFT","FROZEN","UNRESOLVED","EXHAUSTED","COMPILED"].includes(record.phase)&&mine===record.primary&&<button onClick={()=>action("cancel_arena")}>Cancel</button>}</div>{record.domain.matrix&&<details><summary>Inspect full 9 × 9 transition matrix</summary><pre>{Array.from({length:9},(_,i)=>record.domain.matrix.slice(i*9,i*9+9)).join("\n")}</pre></details>}<ol>{record.domain.moves.map((move,i)=><li key={i}>Player {move.actor===0?"A":"B"}: {move.from} → {move.to}</li>)}</ol>{record.outcome&&<strong>Outcome: {phaseLabel(record.outcome)} {record.domain.winner&&`· ${short(record.domain.winner)}`}</strong>}</>:<p>Load an arena to inspect its frozen rule, compiled matrix, positions, and history.</p>}</section>
     </section>
     {(progress.phase!=="IDLE"||notice)&&<aside className="progress" aria-live="polite"><strong>{phaseLabel(progress.phase)}</strong>{progress.hash&&<code>{short(progress.hash)}</code>}<span>{notice||progress.message}</span></aside>}
-    <section className="journal" aria-label="Transaction journal"><h2>Transaction journal</h2>{attempts.length===0?<p>No local attempts yet.</p>:<ul>{attempts.slice(0,4).map(item=><li key={item.reservation}><span>{phaseLabel(item.method)}</span><strong>{journalStatusLabel(item)}</strong>{item.tx_hash&&<code>{short(item.tx_hash)}</code>}</li>)}</ul>}<p>Each attempt keeps an immutable reservation and transaction hash. Reconcile the existing hash; never submit a replacement.</p></section>
+    <section className="journal" aria-label="Transaction journal"><h2>Transaction journal</h2>{attempts.length===0?<p>No local attempts yet.</p>:<ul>{attempts.slice(0,4).map(item=><li key={item.reservation}><span>{phaseLabel(item.method)}</span><strong>{journalStatusLabel(item)}</strong>{item.tx_hash&&<code>{short(item.tx_hash)}</code>}{["SIGNING","SUBMITTED","RECONCILE"].includes(item.status)&&<button disabled={busy} onClick={()=>void reconcile(item)}>Continue verification</button>}</li>)}</ul>}<p>Each attempt keeps an immutable reservation and transaction hash. Reconcile the existing hash; never submit a replacement.</p></section>
     <section id="how" className="how"><h2>How it works</h2><div><article><b>1</b><h3>Write and freeze</h3><p>Player A names Player B and freezes one coordinate-only rule.</p></article><article><b>2</b><h3>Compile everything</h3><p>Validators independently derive the same complete 81-cell relation. Unknown cells block play.</p></article><article><b>3</b><h3>Inspect and consent</h3><p>Player B sees the immutable matrix before joining. Joining accepts this exact compiled revision.</p></article><article><b>4</b><h3>Play deterministically</h3><p>Turns, capture, no-move, draw, and resignation use only contract state—never another model call.</p></article></div><p>Assessment of this exact submitted material only; not verification of external facts.</p></section>
   </main>;
 }
