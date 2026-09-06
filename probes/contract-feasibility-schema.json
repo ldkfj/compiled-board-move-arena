@@ -1,0 +1,47 @@
+{
+  "ctor": {
+    "params": [],
+    "kwparams": {}
+  },
+  "methods": {
+    "exercise": {
+      "params": [
+        [
+          "case_id",
+          "int"
+        ],
+        [
+          "actor",
+          "address"
+        ],
+        [
+          "rule",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "null",
+      "payable": false
+    },
+    "inspect": {
+      "params": [
+        [
+          "case_id",
+          "int"
+        ],
+        [
+          "actor",
+          "address"
+        ],
+        [
+          "label",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    }
+  }
+}
