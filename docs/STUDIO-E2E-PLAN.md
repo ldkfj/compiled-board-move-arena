@@ -1,11 +1,11 @@
 # Studio Dev E2E Operation Plan — PRE_DEPLOY
 
-PLAN_STATUS: READY_FOR_EXACT_REVISION_BINDING
+PLAN_STATUS: READY_FOR_GIT_HANDOFF
 
 ## Binding
 
 - Project: Compiled Board Move Arena
-- Exact revision: pending the governed Git identity decision and commit
+- Source revision: `347189899464cbed2744171bd1993aed42e85406`
 - Contract source: `contracts/main.py`
 - Source SHA-256: generated after the exact revision is committed
 - Network: GenLayer Studio Devnet, chain `61997`
@@ -18,7 +18,7 @@ PLAN_STATUS: READY_FOR_EXACT_REVISION_BINDING
 
 ## Initial conditions
 
-1. Start only after anonymous `PRE_DEPLOY` approval of the exact committed revision.
+1. Start only after an explicit release approval is supplied for the exact committed revision.
 2. Use the guarded official CLI wrapper and verify actor, spendable balance, Studio Dev chain, exact source bytes/hash, one discoverable contract, and 15-method interface.
 3. Verify no pending deployment/write hash exists for this Task.
 4. Assign one immutable operation ID to each deploy/write and retain its journal and log.
@@ -49,4 +49,4 @@ PLAN_STATUS: READY_FOR_EXACT_REVISION_BINDING
 
 Produce `docs/VERIFICATION.md` with one proof row per deployment/write path: operation ID and actor → fee estimate/profile → method and arguments → hash → FINALIZED → semantic result → consensus/finality → exact readback → source/test reference. Record retries and duplicates as zero unless actually observed; never invent unavailable evidence.
 
-No Studio signature, deployment, write, or E2E action is authorized until the exact PRE_DEPLOY package receives the required anonymous approval.
+No Studio signature, deployment, write, or E2E action is authorized in this task phase.

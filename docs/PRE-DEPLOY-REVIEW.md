@@ -1,8 +1,8 @@
 # PRE_DEPLOY Review Package
 
-PACKAGE_STATUS: READY_FOR_ANONYMOUS_REVIEW
+PACKAGE_STATUS: READY_FOR_GIT_HANDOFF
 CHECKPOINT: PRE_DEPLOY
-REVISION: `70e4bace4e0aa4b970c83ef9cf369d3cde0fd475`
+REVISION: `347189899464cbed2744171bd1993aed42e85406`
 
 ## Product and acceptance boundary
 
@@ -21,7 +21,7 @@ Player A freezes one bounded public coordinate rule. GenLayer compiles it once i
 - `docs/STUDIO-TOOL-READINESS.json`: `DFB034123837FEFC21D4A106214F3703E11A98B047B6E4A6D1269CA0C4907261`
 - `frontend/package-lock.json`: `CCCF0322CB611F1A9D1C647E84FE49D811010B344957F681093D3D3B36439305`
 
-These hashes bind the committed review package inputs at revision `70e4bace4e0aa4b970c83ef9cf369d3cde0fd475`.
+These hashes bind the reviewed source inputs at revision `347189899464cbed2744171bd1993aed42e85406`; the package binding commits follow that source revision.
 
 ## Contract/runtime inventory
 
@@ -51,6 +51,6 @@ These hashes bind the committed review package inputs at revision `70e4bace4e0aa
 
 ## Remaining gate
 
-Git identity is locked to `ldkfj <ldkfj@users.noreply.github.com>`. No Studio signature, fee-bearing action, deployment, or write is authorized before anonymous approval.
+Git identity is locked to `ldkfj <ldkfj@users.noreply.github.com>`. No Studio signature, fee-bearing action, deployment, or write is authorized in this task phase.
 
-PRIMARY_AI_VERDICT: Worktree implementation is ready for Git identity binding. This draft is not anonymous approval and does not claim deployment or live E2E success.
+PRIMARY_AI_VERDICT: Local implementation and Git handoff are ready. This package does not claim deployment or live E2E success.
