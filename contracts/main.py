@@ -1,12 +1,12 @@
-# v0.1.0
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
+# v0.3.0
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
 import hashlib
 import json
 import re
 from datetime import datetime, timezone
 
-from genlayer import *
+import genlayer as gl
 
 MAX_CASES = 32
 MAX_REVISIONS = 32
@@ -113,7 +113,7 @@ def _compile(rule):
     )
 
     def leader():
-        return _compile_result(gl.nondet.exec_prompt(prompt, response_format="json"))
+        return _compile_result(gl.nondet.exec_prompt(prompt))
 
     def validator(proposed):
         if not isinstance(proposed, gl.vm.Return):
@@ -123,27 +123,27 @@ def _compile(rule):
         except Exception:
             return False
 
-    return _compile_result(gl.vm.run_nondet_unsafe(leader, validator))
+    return _compile_result(gl.vm.run_nondet(leader, validator))
 
 
-class CompiledBoardMoveArena(gl.Contract):
-    case_count: u256
-    cases: TreeMap[u256, str]
-    nonce_index: TreeMap[str, u256]
-    actor_index: TreeMap[str, str]
-    child_index: TreeMap[u256, str]
-    version_index: TreeMap[u256, u256]
-    history: TreeMap[str, str]
+class CompiledBoardMoveArena(gl.contract.Contract):
+    case_count: gl.u256
+    cases: gl.storage.TreeMap[gl.u256, str]
+    nonce_index: gl.storage.TreeMap[str, gl.u256]
+    actor_index: gl.storage.TreeMap[str, str]
+    child_index: gl.storage.TreeMap[gl.u256, str]
+    version_index: gl.storage.TreeMap[gl.u256, gl.u256]
+    history: gl.storage.TreeMap[str, str]
 
     def __init__(self):
-        self.case_count = u256(0)
+        self.case_count = gl.u256(0)
 
     def _sender(self):
         return _address(gl.message.sender_address)
 
     def _load(self, case_id):
         cid = _u256(case_id, False)
-        raw = self.cases.get(u256(cid), "")
+        raw = self.cases.get(gl.u256(cid), "")
         if not raw:
             _fail("NOT_FOUND")
         return json.loads(raw)
@@ -166,9 +166,9 @@ class CompiledBoardMoveArena(gl.Contract):
         encoded = _canonical(record)
         if len(encoded.encode("utf-8")) > MAX_RECORD_BYTES:
             _fail("CAPACITY")
-        cid = u256(int(record["id"]))
+        cid = gl.u256(int(record["id"]))
         self.cases[cid] = encoded
-        self.version_index[cid] = u256(revision)
+        self.version_index[cid] = gl.u256(revision)
         self.history[record["id"] + ":" + str(revision)] = encoded
 
     def _actor_ids(self, actor):
@@ -181,7 +181,7 @@ class CompiledBoardMoveArena(gl.Contract):
         self.actor_index[actor] = _canonical(ids)
 
     @gl.public.write
-    def create_arena(self, nonce: str, opponent: Address, rule: str) -> u256:
+    def create_arena(self, nonce: str, opponent: gl.Address, rule: str) -> gl.u256:
         if not isinstance(nonce, str) or NONCE_RE.fullmatch(nonce) is None:
             _fail("BAD_NONCE")
         primary, secondary = self._sender(), _address(opponent)
@@ -191,11 +191,11 @@ class CompiledBoardMoveArena(gl.Contract):
         args = [nonce, secondary, rule]
         create_hash = _hash(args)
         nonce_key = primary + ":" + nonce
-        existing = int(self.nonce_index.get(nonce_key, u256(0)))
+        existing = int(self.nonce_index.get(nonce_key, gl.u256(0)))
         if existing:
             record = self._load(existing)
             if record["create_hash"] == create_hash:
-                return u256(existing)
+                return gl.u256(existing)
             _fail("NONCE_CONFLICT")
         if int(self.case_count) >= MAX_CASES:
             _fail("CAPACITY")
@@ -205,14 +205,14 @@ class CompiledBoardMoveArena(gl.Contract):
         cid = int(self.case_count) + 1
         record = {"v":1,"id":str(cid),"primary":primary,"secondary":secondary,"phase":"RULE_DRAFT","revision":"1","parent":"0","create_hash":create_hash,"base":{"rule":rule},"response":{},"base_locked":False,"response_locked":False,"accepted_attempts":0,"last_accepted_at":"0","outcome":"","result":{},"domain":{"matrix":"","positions":[0,8],"turn":0,"ply":0,"moves":[],"winner":""},"last_operation":{}}
         self._commit(record, "create_arena", args)
-        self.case_count = u256(cid)
-        self.nonce_index[nonce_key] = u256(cid)
+        self.case_count = gl.u256(cid)
+        self.nonce_index[nonce_key] = gl.u256(cid)
         self._add_actor(primary, cid, primary_ids)
         self._add_actor(secondary, cid, secondary_ids)
-        return u256(cid)
+        return gl.u256(cid)
 
     @gl.public.write
-    def freeze_rule(self, case_id: u256, expected_revision: u256) -> None:
+    def freeze_rule(self, case_id: gl.u256, expected_revision: gl.u256) -> None:
         record = self._load(case_id); self._revision(record, expected_revision)
         if self._sender() != record["primary"]: _fail("UNAUTHORIZED")
         if record["phase"] != "RULE_DRAFT": _fail("BAD_PHASE")
@@ -247,15 +247,15 @@ class CompiledBoardMoveArena(gl.Contract):
         self._commit(record, method, [str(int(case_id)), str(int(expected_revision))], accepted=True)
 
     @gl.public.write
-    def compile_moves(self, case_id: u256, expected_revision: u256) -> None:
+    def compile_moves(self, case_id: gl.u256, expected_revision: gl.u256) -> None:
         self._evaluate(case_id, expected_revision, False)
 
     @gl.public.write
-    def retry_compile(self, case_id: u256, expected_revision: u256) -> None:
+    def retry_compile(self, case_id: gl.u256, expected_revision: gl.u256) -> None:
         self._evaluate(case_id, expected_revision, True)
 
     @gl.public.write
-    def join_arena(self, case_id: u256, expected_revision: u256) -> None:
+    def join_arena(self, case_id: gl.u256, expected_revision: gl.u256) -> None:
         record = self._load(case_id); self._revision(record, expected_revision)
         if self._sender() != record["secondary"]: _fail("UNAUTHORIZED")
         if record["phase"] != "COMPILED": _fail("BAD_PHASE")
@@ -263,7 +263,7 @@ class CompiledBoardMoveArena(gl.Contract):
         self._commit(record, "join_arena", [str(int(case_id)), str(int(expected_revision))])
 
     @gl.public.write
-    def move_piece(self, case_id: u256, from_cell: u256, to_cell: u256, expected_ply: u256, expected_revision: u256) -> None:
+    def move_piece(self, case_id: gl.u256, from_cell: gl.u256, to_cell: gl.u256, expected_ply: gl.u256, expected_revision: gl.u256) -> None:
         record = self._load(case_id); self._revision(record, expected_revision)
         if record["phase"] != "PLAYING": _fail("BAD_PHASE")
         origin, target, ply = _u256(from_cell), _u256(to_cell), _u256(expected_ply)
@@ -287,7 +287,7 @@ class CompiledBoardMoveArena(gl.Contract):
         self._commit(record, "move_piece", [str(int(case_id)),str(origin),str(target),str(ply),str(int(expected_revision))])
 
     @gl.public.write
-    def resign_arena(self, case_id: u256, expected_revision: u256) -> None:
+    def resign_arena(self, case_id: gl.u256, expected_revision: gl.u256) -> None:
         record = self._load(case_id); self._revision(record, expected_revision); sender = self._sender()
         if record["phase"] != "PLAYING": _fail("BAD_PHASE")
         if sender not in (record["primary"], record["secondary"]): _fail("UNAUTHORIZED")
@@ -296,7 +296,7 @@ class CompiledBoardMoveArena(gl.Contract):
         self._commit(record, "resign_arena", [str(int(case_id)),str(int(expected_revision))])
 
     @gl.public.write
-    def cancel_arena(self, case_id: u256, expected_revision: u256) -> None:
+    def cancel_arena(self, case_id: gl.u256, expected_revision: gl.u256) -> None:
         record = self._load(case_id); self._revision(record, expected_revision)
         if self._sender() != record["primary"]: _fail("UNAUTHORIZED")
         if record["phase"] not in ("RULE_DRAFT","FROZEN","UNRESOLVED","EXHAUSTED","COMPILED"): _fail("BAD_PHASE")
@@ -304,22 +304,22 @@ class CompiledBoardMoveArena(gl.Contract):
         self._commit(record, "cancel_arena", [str(int(case_id)),str(int(expected_revision))])
 
     @gl.public.view
-    def get_case(self, case_id: u256) -> str:
+    def get_case(self, case_id: gl.u256) -> str:
         cid = _u256(case_id)
-        return self.cases.get(u256(cid), "null") if cid else "null"
+        return self.cases.get(gl.u256(cid), "null") if cid else "null"
 
     @gl.public.view
-    def get_version(self, case_id: u256, revision: u256) -> str:
+    def get_version(self, case_id: gl.u256, revision: gl.u256) -> str:
         cid, rev = _u256(case_id), _u256(revision)
         return self.history.get(f"{cid}:{rev}", "null") if cid and rev else "null"
 
     @gl.public.view
-    def get_id_by_nonce(self, creator: Address, nonce: str) -> u256:
+    def get_id_by_nonce(self, creator: gl.Address, nonce: str) -> gl.u256:
         if not isinstance(nonce, str) or NONCE_RE.fullmatch(nonce) is None: _fail("BAD_NONCE")
-        return self.nonce_index.get(_address(creator) + ":" + nonce, u256(0))
+        return self.nonce_index.get(_address(creator) + ":" + nonce, gl.u256(0))
 
     @gl.public.view
-    def get_count(self) -> u256:
+    def get_count(self) -> gl.u256:
         return self.case_count
 
     def _page(self, ids, offset, limit):
@@ -329,7 +329,7 @@ class CompiledBoardMoveArena(gl.Contract):
         return _canonical({"ids":page,"next":str(next_offset) if next_offset < len(ids) else "0"})
 
     @gl.public.view
-    def list_cases(self, start_id: u256, limit: u256) -> str:
+    def list_cases(self, start_id: gl.u256, limit: gl.u256) -> str:
         start, lim = _u256(start_id, False), _u256(limit, False)
         if start > 33 or lim > 4: _fail("BAD_PAGE")
         ids = [str(i) for i in range(start, min(int(self.case_count)+1, start+lim))]
@@ -337,10 +337,10 @@ class CompiledBoardMoveArena(gl.Contract):
         return _canonical({"ids":ids,"next":str(nxt) if nxt <= int(self.case_count) else "0"})
 
     @gl.public.view
-    def list_actor(self, actor: Address, offset: u256, limit: u256) -> str:
+    def list_actor(self, actor: gl.Address, offset: gl.u256, limit: gl.u256) -> str:
         return self._page(self._actor_ids(_address(actor)), offset, limit)
 
     @gl.public.view
-    def list_children(self, parent_id: u256, offset: u256, limit: u256) -> str:
+    def list_children(self, parent_id: gl.u256, offset: gl.u256, limit: gl.u256) -> str:
         parent = _u256(parent_id)
-        return self._page(json.loads(self.child_index.get(u256(parent), "[]")), offset, limit)
+        return self._page(json.loads(self.child_index.get(gl.u256(parent), "[]")), offset, limit)

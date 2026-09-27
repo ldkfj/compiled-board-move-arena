@@ -1,4 +1,4 @@
-import { studionet } from "genlayer-js/chains";
+import { studioDevnet } from "genlayer-js/chains";
 import type { ContractWriteAdapter } from "../contract";
 import { asAddress, connectWallet, type Address, type ChainLike, type ConnectedWallet, type WalletSessionEvent } from "./connection";
 import { WalletRegistry, type DiscoveryHost, type WalletCandidate } from "./providers";
@@ -60,7 +60,7 @@ function chainIdOf(value: unknown): string {
 export function createWalletStore(
   host: DiscoveryHost,
   bindWriteClient: (wallet: ConnectedWallet) => ContractWriteAdapter,
-  chain: ChainLike = studionet,
+  chain: ChainLike = studioDevnet,
 ): WalletSessionStore {
   const registry = new WalletRegistry(host);
   const expectedChainId = `0x${chain.id.toString(16)}`.toLowerCase();

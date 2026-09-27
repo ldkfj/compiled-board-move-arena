@@ -1,4 +1,4 @@
-import { studionet } from "genlayer-js/chains";
+import { studioDevnet } from "genlayer-js/chains";
 import type { WalletCandidate, Eip1193Provider } from "./providers";
 
 export type Address = `0x${string}`;
@@ -62,7 +62,7 @@ function shouldAddChain(error: unknown): boolean {
   return message.includes("unrecognized chain") || message.includes("chain not added");
 }
 
-export async function switchToChain(provider: Eip1193Provider, chain: ChainLike = studionet): Promise<string> {
+export async function switchToChain(provider: Eip1193Provider, chain: ChainLike = studioDevnet): Promise<string> {
   const expected = `0x${chain.id.toString(16)}`.toLowerCase();
   const current = String(await provider.request({ method: "eth_chainId" })).toLowerCase();
   if (current === expected) return current;
@@ -117,7 +117,7 @@ export async function connectWallet(
   if (account !== requestedAccount) {
     throw new Error("The wallet account changed before connection completed.");
   }
-  const chainId = await switchToChain(candidate.provider, options.chain ?? studionet);
+  const chainId = await switchToChain(candidate.provider, options.chain ?? studioDevnet);
   return { ...candidate, account, chainId, cleanup: bindReload(candidate.provider, options.reload) };
 }
 

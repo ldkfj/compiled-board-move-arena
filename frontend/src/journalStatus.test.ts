@@ -5,7 +5,7 @@ import type { JournalRecord } from "./pending";
 const baseRecord: JournalRecord = {
   v: 1,
   reservation: "a".repeat(32),
-  chain: "61999",
+  chain: "61997",
   contract: "0x" + "1".repeat(40),
   account: "0x" + "2".repeat(40),
   method: "compile_moves",

@@ -1,5 +1,5 @@
 import { createClient } from "genlayer-js";
-import { studionet } from "genlayer-js/chains";
+import { studioDevnet } from "genlayer-js/chains";
 import {
   ExecutionResult,
   TransactionHashVariant,
@@ -220,7 +220,7 @@ export async function computeCommitment(input: {
   const contract = input.contract ?? requireContractAddress();
   const preimage = [
     "ANSWER_MATCH_V1",
-    input.chain ?? String(studionet.id),
+    input.chain ?? String(studioDevnet.id),
     normalizeAddress(contract),
     normalizeAddress(input.creator),
     normalizeAddress(input.opponent),
@@ -266,7 +266,7 @@ function parseCase(raw: unknown): CaseRead {
   return { raw, record };
 }
 
-const readClient = sharedReadClient("studionet", () => createClient({ chain: studionet }));
+const readClient = sharedReadClient("studioDevnet", () => createClient({ chain: studioDevnet }));
 const readRpcBudget = createRpcBudgetGuard([
   { id: "contract-read", maxRequests: 1000, maxRetries: 0, baseBackoffMs: 200, cacheTtlMs: 0 },
   { id: "latest-block", maxRequests: 1000, maxRetries: 0, baseBackoffMs: 200, cacheTtlMs: 0 },
@@ -483,7 +483,7 @@ export function makeWriteAdapter(wallet: ConnectedWallet): ContractWriteAdapter 
   const address = requireContractAddress() as GenLayerAddress;
   const provider = wallet.provider as Eip1193Provider;
   const client = createClient({
-    chain: studionet,
+    chain: studioDevnet,
     account: wallet.account as GenLayerAddress,
     provider,
   });
@@ -517,5 +517,5 @@ export function isSuccessfulReceipt(receipt: ContractReceipt): boolean {
 }
 
 export function chainIdDecimal(): string {
-  return String(studionet.id);
+  return String(studioDevnet.id);
 }

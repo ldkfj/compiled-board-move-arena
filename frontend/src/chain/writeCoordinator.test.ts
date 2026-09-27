@@ -23,7 +23,7 @@ class ImmediateLocks implements LockManagerLike {
 }
 
 const journalInput = {
-  chain: "61999",
+  chain: "61997",
   contract: "0x" + "1".repeat(40),
   account: "0x" + "2".repeat(40),
   method: "compile_moves",

@@ -293,9 +293,9 @@ export default function App() {
           </nav>
 
           <div className="site-header__actions">
-            <div className="chain-badge" title="GenLayer Studionet Chain 61999">
+            <div className="chain-badge" title="GenLayer Studio Dev Chain 61997">
               <span className="chain-badge__pulse" aria-hidden="true" />
-              <span className="chain-badge__text">Studionet 61999</span>
+              <span className="chain-badge__text">Studio Dev 61997</span>
             </div>
             <button
               type="button"
@@ -336,7 +336,7 @@ export default function App() {
               </button>
             </div>
             <p className="wallet-dialog__intro">
-              Connect an installed Web3 wallet to authorize arena creation, rule freezing, join consent, and deterministic moves on Studionet.
+              Connect an installed Web3 wallet to authorize arena creation, rule freezing, join consent, and deterministic moves on Studio Dev.
             </p>
 
             {view.providerOptions.length ? (
@@ -939,7 +939,7 @@ export default function App() {
             </p>
           </div>
           <div className="site-footer__meta-col">
-            <span className="site-footer__meta-item">Chain: <code>61999 (GenLayer Studionet)</code></span>
+            <span className="site-footer__meta-item">Chain: <code>61997 (GenLayer Studio Dev)</code></span>
             <span className="site-footer__meta-item">Contract: <code>{short(contract)}</code></span>
             <span className="site-footer__meta-item">Readback: <code>Finalized execution + exact state</code></span>
           </div>

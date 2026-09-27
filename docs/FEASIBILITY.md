@@ -1,26 +1,24 @@
 # Pre-lock Contract Feasibility
 
-- Date: 2026-09-07
-- Tool: `genvm-lint 0.11.0`; Python 3.13; `genlayer-test` Direct Mode
+- Date: 2026-09-21
+- Tool: `genvm-lint 0.11.1rc2`; Python 3.14 under WSL; `genlayer-test 0.30.0rc2` Direct Mode
 - Candidate: `probes/contract_feasibility.py`
-- Exercised: first-line runner metadata, pinned dependency, one discoverable contract, `u256`, `Address`, `str`, seven fully-instantiated `TreeMap` fields, custom `run_nondet_unsafe`, `exec_prompt`, validator re-execution, and pickling.
+- Exercised: v0.3 source metadata, pinned dependency, one discoverable contract, `gl.u256`, `gl.Address`, `str`, seven fully-instantiated `gl.storage.TreeMap` fields, custom `gl.vm.run_nondet`, `exec_prompt`, validator re-execution, and pickling.
 
 ## Verified runner
 
-`py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6`
+`py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng`
 
 - `genvm-lint check`: PASS after enabling UTF-8 console output.
 - `genvm-lint schema`: PASS; constructor and both representative methods discovered with expected ABI families.
 - Direct Mode/pickling: PASS; validator captured and independently reran.
 
-## Rejected candidate runner
-
-The linter advertised `1zr6nqk597d97kg0dyxg0shhrykx5v02zjgnyrajapy4wlqvfvwh` as newer. A bounded probe rejected it for this Build environment: SDK validation failed with `No module named 'genlayer.py'`; Direct Mode selected `v0.3.0-rc7` and failed while importing the runner with `genlayer.calldata.DecodingError: unexpected end of memory`. It is not used.
+The runner is sourced from the official GenVM Manager `v0.6.0-rc5` bundle; asset SHA-256 is recorded in tool readiness.
 
 ## Tooling note
 
-On Windows CP1252, successful `genvm-lint check` crashed while printing its Unicode check mark. `PYTHONUTF8=1` fixes only output encoding; it does not alter contract bytes or validation behavior.
+On Windows CP1252, `PYTHONUTF8=1` is required for linter output. Direct Mode runs under WSL because `genlayer-test 0.30.0rc2` cannot unlink its replaced-stdin temp file on Windows. Neither workaround alters contract bytes.
 
 ## Decision
 
-The approved C11 storage, ABI, and nondeterministic mechanisms are feasible without changing Stage 1/2. The verified older runner remains pinned. Studio's current source-envelope parser will still be checked read-only before PRE_DEPLOY.
+The approved C11 storage, ABI, and nondeterministic mechanisms are feasible on the Studio Next compatible runtime family without changing Stage 1/2. Live source parity remains a post-approval requirement.

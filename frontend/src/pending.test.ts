@@ -47,7 +47,7 @@ const ACCOUNT = "0x" + "2".repeat(40);
 
 function input(index: number) {
   return {
-    chain: "61999",
+    chain: "61997",
     contract: CONTRACT,
     account: ACCOUNT,
     method: "create_arena",

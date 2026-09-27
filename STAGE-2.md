@@ -6,6 +6,10 @@ Approved package SHA-256: 3464E830908CB1D87504057567242D36BDCD0C4FD59934B7D22F64
 Candidate: C11
 Anonymous research verdict: APPROVED
 
+## Current runtime adaptation (2026-09-21)
+
+The approved product, state machine, trust boundary, ordering, and acceptance criteria below remain unchanged. Runtime-only selectors are updated for Studio Dev: contract API `v0.3.0`, `gl.contract.Contract`, `gl.storage.TreeMap`, `gl.vm.run_nondet`, `genlayer-js 2.0.0-rc.1`, preset `studio-dev`, and chain `61997`. Historical Studio RPC-count requirements are retired by current governance; `docs/STUDIO-E2E-PLAN.md` now governs operation IDs, fee estimates, receipts, and authoritative readbacks. The frontend RPC budget remains binding.
+
 The shared architecture and completion rules below are binding for this candidate. Candidate-specific rules override only explicitly named shared profiles.
 
 ## Common exact architecture — binding, not pseudocode placeholders
@@ -85,14 +89,14 @@ def evaluate_frozen(data, task_rule, schema):
             return canonical(theirs) == canonical(mine)
         except Exception:
             return False
-    return gl.vm.run_nondet_unsafe(leader, validator)
+    return gl.vm.run_nondet(leader, validator)
 ```
 
 `parse_and_validate_exact` accepts only str (cap before json.loads) or dict (cap after canonicalization); other types reject. Duplicate keys reject when raw string. All fields in each result schema affect stored decision or are fixed constants, hence full equality is intentional. If optional explanatory UI prose is later added, it must not be stored or affect consequence; it is not part of this V1. Mutate each vector cell/index/outcome test; every change must reject. No valid “different quote” can cause disagreement because quote fields do not exist. A future schema extension requires a new reviewed revision.
 
 ### Durable frontend operations and RPC policy
 
-Supported wallet selector: MetaMask/OKX/Rabby; start disconnected after reload. One contract address and verified Studionet chain config per build; never infer address or use another project's deployment. Native forms and React/Vite, GenLayer JS SDK; no backend, hosted LLM, database or public API dependency.
+Supported wallet selector: MetaMask/OKX/Rabby; start disconnected after reload. One contract address and verified Studio Dev chain config per build; never infer address or use another project's deployment. Native forms and React/Vite, GenLayer JS SDK; no backend, hosted LLM, database or public API dependency.
 
 Journal record exact schema: `{v:1,reservation:hex32,chain:decimal,contract:A,account:A,method:T(48),intent:T(160),args_json:T(18000),pre_revision:decimal,pre_hash:hex64,tx_hash:E(66),status:'SIGNING'|'SUBMITTED'|'RECONCILE'|'FINALIZED_ERROR'|'VERIFIED',created_ms:decimal}`. Maximum32 records; block new writes when full, allow reconciliation/export. Store each attempt under immutable unique key `glj1:`+reservation, where reservation is 16 browser-random bytes rendered lowercase hex. Maintain a separate operation fingerprint sha256(canonical([chain,contract,account,method,intent])) inside conflict checking; it is NOT a storage key. Enumerable index `glj1:index` contains every journal key sorted by created time. Load and enumerate it BEFORE connecting wallet. Old-chain/account entries remain visible read-only/quarantined; never re-sign/replay them under a new context. RPC reconciliation uses each entry's stored chain and contract, not active wallet context.
 
@@ -244,5 +248,4 @@ FINALIZED + FINISHED_WITH_RETURN
 -> VERIFIED; otherwise RECONCILE or explicit FINALIZED_ERROR.
 ~~~
 Symptom: finalized errors and stale UI displayed as success. Root: finality confused with execution/readback. Verify finalized-error, later-independent-mutation, stale read and mismatch fixtures. Fixed only when none of the failed cases receives success copy and the correct historical readback still works.
-
 

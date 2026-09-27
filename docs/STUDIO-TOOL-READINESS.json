@@ -1,0 +1,56 @@
+{
+  "status": "READY_FOR_PRE_DEPLOY_REVIEW",
+  "checkedAt": "2026-09-21T13:50:00Z",
+  "target": {
+    "network": "GenLayer Studio Devnet",
+    "preset": "studio-dev",
+    "chainId": 61997,
+    "rpc": "https://studio-dev.genlayer.com/api",
+    "explorer": "https://explorer-studio-dev.genlayer.com/"
+  },
+  "runtime": {
+    "genvmManager": "v0.6.0-rc5",
+    "runner": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng",
+    "bundleSha256": "bd30580f749d52255732478dc94cba26cce8d1aa337339375570a623472615ca"
+  },
+  "tools": {
+    "genlayerCli": "0.40.0-rc.3",
+    "genlayerJs": "2.0.0-rc.1",
+    "genlayerPy": "0.19.0rc2",
+    "genlayerTest": "0.30.0rc2",
+    "genvmLinter": "0.11.1rc2",
+    "transactionKit": "0.1.0-rc.2"
+  },
+  "capabilities": {
+    "officialCliWrapper": true,
+    "isolatedActorProfile": true,
+    "immutableOperationJournal": true,
+    "duplicateOperationIdRejected": true,
+    "receiptReconciliation": true,
+    "authoritativeReadback": true,
+    "feeEstimateRequiredBeforeWrite": true,
+    "browserFallbackRequired": false
+  },
+  "actors": [
+    {
+      "name": "actor7",
+      "address": "0x8581C4A532DD3f9B163b12809B1bD089f367147f",
+      "balanceWei": "139982851014249816495",
+      "balanceObservedAt": "2026-09-21",
+      "usable": true
+    }
+  ],
+  "project": {
+    "contractApi": "v0.3.0",
+    "deployableContracts": 1,
+    "publicMethods": 15,
+    "lint": "PASS",
+    "schemaValidation": "PASS",
+    "directMode": "12 PASS",
+    "frontendUnit": "63 PASS",
+    "frontendE2e": "3 PASS",
+    "frontendBuild": "PASS"
+  },
+  "writesSubmitted": 0,
+  "deploymentSubmitted": false
+}

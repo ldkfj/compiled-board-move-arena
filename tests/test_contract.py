@@ -52,7 +52,7 @@ def test_create_freeze_idempotency_and_authority(direct_vm, direct_deploy, direc
 
 def test_compile_join_and_capture_are_deterministic(direct_vm, direct_deploy, direct_alice, direct_bob):
     cells = matrix_cells([(0, 1), (1, 7), (8, 7), (7, 0)])
-    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": cells})
+    direct_vm._live_llm_handler = lambda _data: {"ok": json.dumps({"v": 1, "supported": True, "cells": cells})}
     direct_vm.check_pickling = True
     contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
     contract.compile_moves(1, 2)
@@ -77,7 +77,7 @@ def test_compile_join_and_capture_are_deterministic(direct_vm, direct_deploy, di
 
 @pytest.mark.parametrize("bad", ["D" * 80, "D" * 40 + "X" + "D" * 40, "A" + "D" * 80])
 def test_malformed_compile_output_is_no_write(direct_vm, direct_deploy, direct_alice, direct_bob, bad):
-    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": bad})
+    direct_vm._live_llm_handler = lambda _data: {"ok": json.dumps({"v": 1, "supported": True, "cells": bad})}
     contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
     before = contract.get_case(1)
     with direct_vm.expect_revert("MALFORMED_RESULT"):
@@ -87,7 +87,7 @@ def test_malformed_compile_output_is_no_write(direct_vm, direct_deploy, direct_a
 
 def test_unknown_retry_exhaustion_and_cancel(direct_vm, direct_deploy, direct_alice, direct_bob):
     cells = list("D" * 81); cells[1] = "U"; cells[72 + 7] = "A"
-    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": "".join(cells)})
+    direct_vm._live_llm_handler = lambda _data: {"ok": json.dumps({"v": 1, "supported": True, "cells": "".join(cells)})}
     contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
     contract.compile_moves(1, 2)
     assert record(contract)["phase"] == "UNRESOLVED"
@@ -102,7 +102,7 @@ def test_unknown_retry_exhaustion_and_cancel(direct_vm, direct_deploy, direct_al
 
 def test_illegal_move_and_stale_guards_do_not_write(direct_vm, direct_deploy, direct_alice, direct_bob):
     cells = matrix_cells([(0, 1), (8, 7)])
-    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": cells})
+    direct_vm._live_llm_handler = lambda _data: {"ok": json.dumps({"v": 1, "supported": True, "cells": cells})}
     contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
     contract.compile_moves(1, 2)
     with direct_vm.prank(direct_bob): contract.join_arena(1, 3)
@@ -114,14 +114,14 @@ def test_illegal_move_and_stale_guards_do_not_write(direct_vm, direct_deploy, di
 
 
 def test_unsupported_never_opens_play(direct_vm, direct_deploy, direct_alice, direct_bob):
-    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": False, "cells": "U" * 81})
+    direct_vm._live_llm_handler = lambda _data: {"ok": json.dumps({"v": 1, "supported": False, "cells": "U" * 81})}
     contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
     contract.compile_moves(1, 2)
     assert (record(contract)["phase"], record(contract)["outcome"]) == ("DONE", "UNSUPPORTED_RULE")
 
 
 def test_unplayable_persists_matrix_for_inspection(direct_vm, direct_deploy, direct_alice, direct_bob):
-    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": "D" * 81})
+    direct_vm._live_llm_handler = lambda _data: {"ok": json.dumps({"v": 1, "supported": True, "cells": "D" * 81})}
     contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
     contract.compile_moves(1, 2)
     unplayable = record(contract)
@@ -130,7 +130,7 @@ def test_unplayable_persists_matrix_for_inspection(direct_vm, direct_deploy, dir
 
 def test_no_move_resign_lists_and_history(direct_vm, direct_deploy, direct_alice, direct_bob):
     cells = matrix_cells([(0, 1), (1, 2), (8, 7)])
-    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": cells})
+    direct_vm._live_llm_handler = lambda _data: {"ok": json.dumps({"v": 1, "supported": True, "cells": cells})}
     contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
     contract.compile_moves(1, 2)
     with direct_vm.prank(direct_bob): contract.join_arena(1, 3)
@@ -147,7 +147,7 @@ def test_no_move_resign_lists_and_history(direct_vm, direct_deploy, direct_alice
 
 def test_resign_assigns_other_player_and_blocks_cancel(direct_vm, direct_deploy, direct_alice, direct_bob):
     cells = matrix_cells([(0, 1), (8, 7)])
-    direct_vm.mock_llm("Compile the frozen", {"v": 1, "supported": True, "cells": cells})
+    direct_vm._live_llm_handler = lambda _data: {"ok": json.dumps({"v": 1, "supported": True, "cells": cells})}
     contract = create_frozen(direct_vm, direct_deploy, direct_alice, direct_bob)
     contract.compile_moves(1, 2)
     with direct_vm.prank(direct_bob):

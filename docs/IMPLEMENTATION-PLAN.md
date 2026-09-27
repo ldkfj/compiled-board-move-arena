@@ -13,7 +13,7 @@ Implement the approved C11 Research handoff without changing its trust problem, 
 
 ## Pre-lock feasibility
 
-Probe the current official header/dependency, contract discovery, `u256`/`Address` ABI, seven `TreeMap` declarations, custom `run_nondet_unsafe` leader/validator with primitive captures and pickling checks, lint, schema extraction, and focused Direct Mode behavior. Probe evidence is not deployment evidence.
+Probe the current official header/dependency, contract discovery, `gl.u256`/`gl.Address` ABI, seven `gl.storage.TreeMap` declarations, custom `gl.vm.run_nondet` leader/validator with primitive captures and pickling checks, lint, schema extraction, and focused Direct Mode behavior. Probe evidence is not deployment evidence.
 
 ## Experience application
 
@@ -21,7 +21,7 @@ Probe the current official header/dependency, contract discovery, `u256`/`Addres
 - Keep test doubles narrower than runtime: use production-shaped addresses and storage behavior; enable pickling/serialization checks.
 - Compare only consequence-authorizing consensus fields: exact `{v,supported,cells}` is appropriate because every cell controls legality.
 - Keep specification/result schema identical across contract, frontend parser, tests, and readback.
-- Verify the current Studio text-runner header before PRE_DEPLOY; do not assume the historical `# v0.1.0` line is current.
+- Bind the v0.3 source envelope and pinned Studio Dev runner before PRE_DEPLOY.
 
 ## Verification sequence
 

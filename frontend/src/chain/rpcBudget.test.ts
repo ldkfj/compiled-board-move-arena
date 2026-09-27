@@ -21,8 +21,8 @@ describe("frontend RPC budget guard", () => {
 
   it("separates RPC keys and enforces the matrix budget", async () => {
     const budget = createRpcBudgetGuard([{ id: "one-call", maxRequests: 1, maxRetries: 0, baseBackoffMs: 1, cacheTtlMs: 0 }]);
-    expect(rpcKey({ chainId: 61999, contract: `0x${"a".repeat(40)}`, method: "get_case", args: ["1"] })).not.toBe(
-      rpcKey({ chainId: 61999, contract: `0x${"a".repeat(40)}`, method: "get_case", args: ["2"] }),
+    expect(rpcKey({ chainId: 61997, contract: `0x${"a".repeat(40)}`, method: "get_case", args: ["1"] })).not.toBe(
+      rpcKey({ chainId: 61997, contract: `0x${"a".repeat(40)}`, method: "get_case", args: ["2"] }),
     );
     await budget.request({ rowId: "one-call", key: "a", signal: signal(), call: async () => 1 });
     await expect(budget.request({ rowId: "one-call", key: "b", signal: signal(), call: async () => 2 })).rejects.toThrow("RPC budget exceeded");

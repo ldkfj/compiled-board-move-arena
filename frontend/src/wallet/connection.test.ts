@@ -23,7 +23,7 @@ describe("connectWallet", () => {
       request: vi.fn(async ({ method }: { method: string }) => {
         if (method === "eth_requestAccounts") return [ACCOUNT];
         if (method === "eth_accounts") return [ACCOUNT];
-        if (method === "eth_chainId") return "0xf22f";
+        if (method === "eth_chainId") return "0xf22d";
         return [];
       }),
       on: vi.fn((event: string, listener: (...args: unknown[]) => void) => listeners.set(event, listener)),
@@ -32,7 +32,7 @@ describe("connectWallet", () => {
 
     const connected = await connectWallet(candidate(provider), { reload });
     expect(connected.account).toBe(ACCOUNT);
-    expect(connected.chainId).toBe("0xf22f");
+    expect(connected.chainId).toBe("0xf22d");
     expect(provider.request).toHaveBeenCalledTimes(3);
 
     listeners.get("accountsChanged")?.([ACCOUNT]);
@@ -59,7 +59,7 @@ describe("connectWallet", () => {
         if (method === "wallet_switchEthereumChain" && switchAttempts++ === 0) {
           throw Object.assign(new Error("chain not added"), { code: 4902 });
         }
-        if (method === "wallet_switchEthereumChain") currentChain = "0xf22f";
+        if (method === "wallet_switchEthereumChain") currentChain = "0xf22d";
         return [];
       }),
     };
@@ -83,7 +83,7 @@ describe("connectWallet", () => {
       request: vi.fn(async ({ method }: { method: string }) => {
         if (method === "eth_requestAccounts") return [ACCOUNT];
         if (method === "eth_accounts") return [];
-        return "0xf22f";
+        return "0xf22d";
       }),
     };
 
@@ -96,7 +96,7 @@ describe("connectWallet", () => {
       request: vi.fn(async ({ method }: { method: string }) => {
         if (method === "eth_requestAccounts") return [ACCOUNT];
         if (method === "eth_accounts") return ["0x2222222222222222222222222222222222222222"];
-        return "0xf22f";
+        return "0xf22d";
       }),
     };
 

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
-import { studionet } from "genlayer-js/chains";
+import { studioDevnet } from "genlayer-js/chains";
 import { createWalletStore, selectWalletView } from "./store";
 import type { ContractWriteAdapter } from "../contract";
 import type { DiscoveryHost, Eip1193Provider } from "./providers";
@@ -9,14 +9,14 @@ const ACCOUNT = "0x1111111111111111111111111111111111111111";
 const SECOND_ACCOUNT = "0x2222222222222222222222222222222222222222";
 const INFO = { uuid: "mm-1", name: "MetaMask", icon: "data:", rdns: "io.metamask" };
 
-function provider(chainId = "0xf22f") {
+function provider(chainId = "0xf22d") {
   const listeners = new Map<string, (...args: unknown[]) => void>();
   let currentChain = chainId;
   const value: Eip1193Provider = {
     request: vi.fn(async ({ method }: { method: string }) => {
       if (method === "eth_requestAccounts" || method === "eth_accounts") return [ACCOUNT];
       if (method === "eth_chainId") return currentChain;
-      if (method === "wallet_switchEthereumChain") { currentChain = "0xf22f"; return null; }
+      if (method === "wallet_switchEthereumChain") { currentChain = "0xf22d"; return null; }
       return null;
     }),
     on: (event, listener) => { listeners.set(event, listener); },
@@ -72,7 +72,7 @@ describe("canonical wallet session state machine", () => {
     const candidate = store.selectWalletView().providerOptions[0];
     await store.selectWallet(candidate);
     const state = store.getWalletState();
-    expect(state).toMatchObject({ phase: "CONNECTED", account: ACCOUNT, chainId: "0xf22f" });
+    expect(state).toMatchObject({ phase: "CONNECTED", account: ACCOUNT, chainId: "0xf22d" });
     expect(state.selectedProvider?.provider).toBe(controls.value);
     expect(state.writeClient).toBeDefined();
     expect(bindWriteClient).toHaveBeenCalledWith(state.wallet);
@@ -89,7 +89,7 @@ describe("canonical wallet session state machine", () => {
     controls.emit("chainChanged", "0x1");
     expect(store.getWalletState()).toMatchObject({ phase: "WRONG_CHAIN", account: ACCOUNT, writeClient: null });
     expect(store.selectWalletView()).toMatchObject({ connected: false, canWrite: false, primaryAction: "Switch wallet" });
-    controls.emit("chainChanged", "0xf22f");
+    controls.emit("chainChanged", "0xf22d");
     expect(store.getWalletState()).toMatchObject({ phase: "CONNECTED", account: ACCOUNT });
     store.destroy();
   });
