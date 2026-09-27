@@ -1,8 +1,8 @@
-# PRE_DEPLOY Review Package Draft
+# PRE_DEPLOY Review Package
 
-PACKAGE_STATUS: READY_FOR_GIT_IDENTITY_AND_EXACT_REVISION_BINDING
+PACKAGE_STATUS: READY_FOR_ANONYMOUS_REVIEW
 CHECKPOINT: PRE_DEPLOY
-REVISION: pending governed commit
+REVISION: `347189899464cbed2744171bd1993aed42e85406`
 
 ## Product and acceptance boundary
 
@@ -21,7 +21,7 @@ Player A freezes one bounded public coordinate rule. GenLayer compiles it once i
 - `docs/STUDIO-TOOL-READINESS.json`: `DFB034123837FEFC21D4A106214F3703E11A98B047B6E4A6D1269CA0C4907261`
 - `frontend/package-lock.json`: `CCCF0322CB611F1A9D1C647E84FE49D811010B344957F681093D3D3B36439305`
 
-These are pre-commit worktree hashes. The exact-revision package and anonymous-review prompt must be regenerated after the governed Git identity is selected and the commit exists.
+These hashes bind the committed review package inputs at revision `347189899464cbed2744171bd1993aed42e85406`.
 
 ## Contract/runtime inventory
 
@@ -51,6 +51,6 @@ These are pre-commit worktree hashes. The exact-revision package and anonymous-r
 
 ## Remaining gate
 
-Select the Git account that must own all AI commits and later pushes for this project. Then commit, recompute exact hashes and revision, run the final consistency scan, and issue one self-contained anonymous PRE_DEPLOY review prompt. No Studio signature, fee-bearing action, deployment, or write is authorized before anonymous approval.
+Git identity is locked to `ldkfj <ldkfj@users.noreply.github.com>`. No Studio signature, fee-bearing action, deployment, or write is authorized before anonymous approval.
 
 PRIMARY_AI_VERDICT: Worktree implementation is ready for Git identity binding. This draft is not anonymous approval and does not claim deployment or live E2E success.
