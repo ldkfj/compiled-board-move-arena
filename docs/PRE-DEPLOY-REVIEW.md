@@ -2,7 +2,7 @@
 
 PACKAGE_STATUS: READY_FOR_ANONYMOUS_REVIEW
 CHECKPOINT: PRE_DEPLOY
-REVISION: `347189899464cbed2744171bd1993aed42e85406`
+REVISION: `70e4bace4e0aa4b970c83ef9cf369d3cde0fd475`
 
 ## Product and acceptance boundary
 
@@ -21,7 +21,7 @@ Player A freezes one bounded public coordinate rule. GenLayer compiles it once i
 - `docs/STUDIO-TOOL-READINESS.json`: `DFB034123837FEFC21D4A106214F3703E11A98B047B6E4A6D1269CA0C4907261`
 - `frontend/package-lock.json`: `CCCF0322CB611F1A9D1C647E84FE49D811010B344957F681093D3D3B36439305`
 
-These hashes bind the committed review package inputs at revision `347189899464cbed2744171bd1993aed42e85406`.
+These hashes bind the committed review package inputs at revision `70e4bace4e0aa4b970c83ef9cf369d3cde0fd475`.
 
 ## Contract/runtime inventory
 
